@@ -15,16 +15,20 @@ npm install --save ivh-react-tableau
 ```jsx
 import React, { Component } from 'react'
 
-import MyComponent from 'ivh-react-tableau'
-import 'ivh-react-tableau/dist/index.css'
+import IvhTableauDashboard from 'ivh-react-tableau'
 
 class Example extends Component {
   render() {
-    return <MyComponent />
+    return (
+      <IvhTableauDashboard url='http://public.tableau.com/views/RegionalSampleWorkbook/College'
+        filters={{
+          'Academic Year': '2013'
+        }} />
+    )
   }
 }
 ```
 
 ## License
 
-MIT © [evsheffield](https://github.com/evsheffield)
+MIT © iVantage Health Analytics

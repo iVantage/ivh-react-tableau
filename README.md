@@ -15,7 +15,9 @@ npm install --save ivh-react-tableau
 Before using this component you need to provide the Tableau JS API by adding
 it to your `index.html`.
 
+```html
 <script src="https://public.tableau.com/javascripts/api/tableau-2.min.js"></script>
+```
 
 Load it!
 
@@ -44,9 +46,9 @@ Use it!
 - `parameters` - A hash of tableau parameters to apply to the dashboard.
   Changes will be applied to the dashboard as this prop is updated.
 - `onDashboardLoad` - An optional callback function which is called during the dashboard's
-  `onFirstInteractiveEvent`. Is passed the viz's workbook as a parameter.
+  `onFirstInteractive` event. The callback is passed the viz's workbook as a parameter.
 
-Additional [options](https://onlinehelp.tableau.com/current/api/js_api/en-us/JavaScriptAPI/js_api_ref.htm#ref_head_9) can be passed to the Tableau initializer
+Additional [options](https://help.tableau.com/current/api/js_api/en-us/JavaScriptAPI/js_api_ref.htm#vizcreateoptions_record) can be passed to the Tableau initializer
 by specifying additional attributes on the `IvhTableauDashboard` tag. e.g. `<IvhTableauDashboard ... height='500px' hideTabs />`
 
 ## Development

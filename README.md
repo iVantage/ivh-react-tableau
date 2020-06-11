@@ -35,14 +35,14 @@ Use it!
 
 ### Properties
 
-- `url` *(required)* - The content URL for the Tableau view to embed
+- `url` _(required)_ - The content URL for the Tableau view to embed
 - `user` - If using trusted authentication, the Tableau user to request a trusted ticket as. If
-not provided then trusted authentication will not be attempted.
+  not provided then trusted authentication will not be attempted.
 - `tableauTrustedUrl` - The API endpoint used to fetch the trusted URL.
 - `filters` - A hash of tableau filters to apply to the dashboard.
-Changes will be applied to the dashboard as this prop is updated.
+  Changes will be applied to the dashboard as this prop is updated.
 - `parameters` - A hash of tableau parameters to apply to the dashboard.
-Changes will be applied to the dashboard as this prop is updated.
+  Changes will be applied to the dashboard as this prop is updated.
 
 Additional [options](https://onlinehelp.tableau.com/current/api/js_api/en-us/JavaScriptAPI/js_api_ref.htm#ref_head_9) can be passed to the Tableau initializer
 by specifying additional attributes on the `IvhTableauDashboard` tag. e.g. `<IvhTableauDashboard ... height='500px' hideTabs />`

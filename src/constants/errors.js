@@ -1,4 +1,3 @@
-
 /**
  * Tableau related error messages.
  */

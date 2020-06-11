@@ -1,3 +1,5 @@
+/* global fetch */
+
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 
@@ -9,6 +11,8 @@ import {
 } from './constants/errors'
 
 const DEFAULT_TABLEAU_TRUSTED_URI = '/api/tableau/trustedurl'
+
+const HTTP_STATUS_NOCONTENT = 204
 
 const fetchOpts = {
   credentials: 'same-origin',
@@ -52,16 +56,19 @@ const DEBUG = window.location.search.indexOf('debug') > -1
  */
 const getPromiseFromTableauPromise = (tableauPromise) => {
   return new Promise((resolve, reject) => {
-    tableauPromise.then((result) => {
-      resolve(result)
-    }, (err) => {
-      reject(err)
-    })
+    tableauPromise.then(
+      (result) => {
+        resolve(result)
+      },
+      (err) => {
+        reject(err)
+      }
+    )
   })
 }
 
 class IvhTableauDashboard extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state = {
       maxSize: {},
@@ -78,23 +85,23 @@ class IvhTableauDashboard extends Component {
     this.messageEventListener = this.checkThirdPartyCookies.bind(this)
   }
 
-  resizeViz () {
+  resizeViz() {
     if (!this.viz) {
       // It's possible for us to have a viz, then lose it without unmounting.
       // This can happen when after we init a new trusted view (e.g. after
       // `componentDidUpdate`) but there's an error building the viz.
       return
     }
-    let width = this.container.clientWidth
+    const width = this.container.clientWidth
     // Allow the tableau embed to maintain its full height. If
     // necessary, height can be applied to the containing element
-    let height = this.state.maxSize.hasOwnProperty('height')
+    const height = Object.hasOwnProperty.call(this.state.maxSize, 'height')
       ? this.state.maxSize.height
       : '500px'
     this.viz.setFrameSize(width, height)
   }
 
-  checkThirdPartyCookies (event) {
+  checkThirdPartyCookies(event) {
     // Because there ain't no party like a third party
     if (event.data === 'ivantage:3PCunsupported') {
       this.setState({ thirdPartyCookiesEnabled: false })
@@ -108,13 +115,13 @@ class IvhTableauDashboard extends Component {
   /**
    * Get a promise for window.tableau
    */
-  getTableau () {
+  getTableau() {
     if (window.tableau) {
       return Promise.resolve(window.tableau)
     }
 
     // We'll give it one minute? That's crazy long.
-    let startTime = Date.now()
+    const startTime = Date.now()
     return new Promise((resolve, reject) => {
       const interval = setInterval(() => {
         if (window.tableau) {
@@ -124,7 +131,9 @@ class IvhTableauDashboard extends Component {
 
         if (Date.now() - startTime > 60 * 1000) {
           clearInterval(interval)
-          return reject(new Error('Timed out waiting for Tableau to become available.'))
+          return reject(
+            new Error('Timed out waiting for Tableau to become available.')
+          )
         }
       }, 100)
     })
@@ -135,7 +144,7 @@ class IvhTableauDashboard extends Component {
    *
    * It's not guaranteed to be there... I hope you know what you're doing...
    */
-  getTableauSyncUnsafe () {
+  getTableauSyncUnsafe() {
     if (!window.tableau) {
       throw new Error('Accessing window.tableau before it is available')
     }
@@ -145,7 +154,7 @@ class IvhTableauDashboard extends Component {
   /**
    * Initializes a Tableau viz for the trusted URL currently in the state
    */
-  initTableau (trustedUrl) {
+  initTableau(trustedUrl) {
     // Clear any previously determined dashboard dimensions
     this.setState({
       maxSize: {},
@@ -187,7 +196,7 @@ class IvhTableauDashboard extends Component {
           }
           if (Object.keys(this.state.preLoadFilters).length) {
             this.applyFilters(this.state.preLoadFilters)
-            this.setState({preLoadFilters: {}})
+            this.setState({ preLoadFilters: {} })
           }
         }
       })(this.props.parameters, this.props.filters)
@@ -197,26 +206,25 @@ class IvhTableauDashboard extends Component {
     // might interpret this as a "reset" on a particular filter/parameter but as
     // an initial value I'm not sure there's much value in sending an undefined
     // thing.
-    Object.keys(options).forEach(key => {
+    Object.keys(options).forEach((key) => {
       if (typeof options[key] === 'undefined') {
         delete options[key]
       }
     })
 
-    Object.keys(options)
-      .forEach(key => {
+    Object.keys(options).forEach((key) => {
       // It's necessary to also check that it's not an array so we don't remove filters
       // In JS, typeof [] === 'object' :facepalm:
-        if (typeof options[key] === 'object' && !Array.isArray(options[key])) {
-          delete options[key]
-        }
-      })
+      if (typeof options[key] === 'object' && !Array.isArray(options[key])) {
+        delete options[key]
+      }
+    })
 
     if (DEBUG) {
       console.log('Creating viz...')
       Object.keys(options)
-        .filter(key => key !== 'onFirstInteractive')
-        .forEach(key => {
+        .filter((key) => key !== 'onFirstInteractive')
+        .forEach((key) => {
           console.log('...with initial option', key, options[key])
         })
     }
@@ -228,10 +236,10 @@ class IvhTableauDashboard extends Component {
     }
 
     this.getTableau()
-      .then(Tableau => {
+      .then((Tableau) => {
         this.viz = new Tableau.Viz(this.container, trustedUrl, options)
       })
-      .catch(reason => {
+      .catch((reason) => {
         console.error(reason)
       })
   }
@@ -239,7 +247,7 @@ class IvhTableauDashboard extends Component {
   /**
    * Gets the trusted URL for the Tableau view and initializes the viz
    */
-  initTrustedView () {
+  initTrustedView() {
     const { url, user, tableauTrustedUrl } = this.props
 
     // If no user is provided just try to load the dashboard as is
@@ -253,18 +261,20 @@ class IvhTableauDashboard extends Component {
     }
 
     fetch(`${tableauTrustedUrl}?user=${user}&url=${url}`, fetchOpts)
-      .then(resp => {
+      .then((resp) => {
         // No-Content responses will fail json decoding
         // because they have no body. They should just resolve
         // with no data
         if (resp.status === HTTP_STATUS_NOCONTENT) {
           return Promise.resolve()
         }
-        return resp.json().then(json => {
+        return resp.json().then((json) => {
           if (resp.ok) {
             return json
           }
-          let err = new Error(`Request to ${url} failed with status ${resp.status}`)
+          const err = new Error(
+            `Request to ${url} failed with status ${resp.status}`
+          )
           err.httpStatusCode = resp.status
           return Promise.reject(err)
         })
@@ -276,9 +286,11 @@ class IvhTableauDashboard extends Component {
         }
         this.initTableau(dashUrl)
       })
-      .catch(reason => {
-        if (reason.hasOwnProperty('httpStatusCode') &&
-          reason.httpStatusCode === 401) {
+      .catch((reason) => {
+        if (
+          Object.hasOwnProperty.call(reason, 'httpStatusCode') &&
+          reason.httpStatusCode === 401
+        ) {
           this.setState({ error: ERROR_PERMISSIONS })
         } else {
           this.setState({ error: ERROR_GENERIC })
@@ -287,7 +299,7 @@ class IvhTableauDashboard extends Component {
       })
   }
 
-  applyFilters (filters) {
+  applyFilters(filters) {
     // If we don't have a workbook yet, save these to be applied on initial load
     if (!(this.workbook && this.viz)) {
       return this.setState({
@@ -302,8 +314,10 @@ class IvhTableauDashboard extends Component {
     // applying all filters, and resuming automatic updates
     getPromiseFromTableauPromise(this.viz.pauseAutomaticUpdatesAsync())
       .then(() => Promise.all(this.applyFiltersHelper(filters)))
-      .then(() => getPromiseFromTableauPromise(this.viz.resumeAutomaticUpdatesAsync()))
-      .catch(err => {
+      .then(() =>
+        getPromiseFromTableauPromise(this.viz.resumeAutomaticUpdatesAsync())
+      )
+      .catch((err) => {
         console.error(err)
         // Tableau sometimes throws "invalidFilterFieldValue" errors for
         // filters that don't match any records. Just try to resume updates
@@ -312,7 +326,7 @@ class IvhTableauDashboard extends Component {
       })
   }
 
-  applyFiltersHelper (filters) {
+  applyFiltersHelper(filters) {
     const filterPromises = []
 
     const Tableau = this.getTableauSyncUnsafe()
@@ -327,14 +341,22 @@ class IvhTableauDashboard extends Component {
     }
 
     const clearFilter = (filterKey) => {
-      sheets.forEach(ws => filterPromises.push(getPromiseFromTableauPromise(ws.applyFilterAsync(filterKey, '', Tableau.FilterUpdateType.ALL))))
+      sheets.forEach((ws) =>
+        filterPromises.push(
+          getPromiseFromTableauPromise(
+            ws.applyFilterAsync(filterKey, '', Tableau.FilterUpdateType.ALL)
+          )
+        )
+      )
     }
 
     for (const key in filters) {
       const filterValue = filters[key]
 
-      if (!this.state.filters.hasOwnProperty(key) ||
-        filterValue !== this.state.filters[key]) {
+      if (
+        !Object.hasOwnProperty.call(this.state.filters, key) ||
+        filterValue !== this.state.filters[key]
+      ) {
         if (DEBUG) {
           console.log(
             'Setting Tableau filter',
@@ -346,14 +368,16 @@ class IvhTableauDashboard extends Component {
         if (!filterValue.length) {
           clearFilter(key)
         } else {
-          sheets.forEach(ws => {
-            filterPromises.push(getPromiseFromTableauPromise(
-              ws.applyFilterAsync(
-                key,
-                filterValue,
-                Tableau.FilterUpdateType.REPLACE
+          sheets.forEach((ws) => {
+            filterPromises.push(
+              getPromiseFromTableauPromise(
+                ws.applyFilterAsync(
+                  key,
+                  filterValue,
+                  Tableau.FilterUpdateType.REPLACE
+                )
               )
-            ))
+            )
           })
         }
       }
@@ -362,7 +386,7 @@ class IvhTableauDashboard extends Component {
     // If any filters that were previously applied are no longer present in the
     // list of filters, clear them out
     for (const key in this.state.filters) {
-      if (!filters.hasOwnProperty(key)) {
+      if (!Object.hasOwnProperty.call(filters, key)) {
         if (DEBUG) {
           console.log(
             'Clearing Tableau filter',
@@ -379,7 +403,7 @@ class IvhTableauDashboard extends Component {
     return filterPromises
   }
 
-  applyParameters (parameters) {
+  applyParameters(parameters) {
     // If we don't have a workbook yet, save these to be applied on initial load
     if (!(this.workbook && this.viz)) {
       this.setState({
@@ -391,8 +415,10 @@ class IvhTableauDashboard extends Component {
       return
     }
     for (const key in parameters) {
-      if (!this.state.parameters.hasOwnProperty(key) ||
-        parameters[key] !== this.state.parameters[key]) {
+      if (
+        !Object.hasOwnProperty.call(this.state.parameters, key) ||
+        parameters[key] !== this.state.parameters[key]
+      ) {
         if (DEBUG) {
           console.log(
             'Setting Tableau parameter',
@@ -407,20 +433,25 @@ class IvhTableauDashboard extends Component {
     this.setState({ parameters })
   }
 
-  meetsStandardWidth () {
+  meetsStandardWidth() {
     // Return true while the size of the viz is still unknown
-    if (Object.keys(this.state.maxSize).length === 0 || Object.keys(this.state.minSize).length === 0) {
+    if (
+      Object.keys(this.state.maxSize).length === 0 ||
+      Object.keys(this.state.minSize).length === 0
+    ) {
       return true
     }
-    return this.state.maxSize.width >= STANDARD_MAX_WIDTH &&
+    return (
+      this.state.maxSize.width >= STANDARD_MAX_WIDTH &&
       this.state.minSize.width <= STANDARD_MIN_WIDTH
+    )
   }
 
-  downloadWorkbook () {
+  downloadWorkbook() {
     this.viz.showDownloadWorkbookDialog()
   }
 
-  render () {
+  render() {
     const {
       url,
       user,
@@ -435,27 +466,28 @@ class IvhTableauDashboard extends Component {
     } = this.props
     return (
       <div>
-        <iframe src='https://ivantage.github.io/3rdpartycookiecheck/start.html'
+        <iframe
+          src='https://ivantage.github.io/3rdpartycookiecheck/start.html'
           title='Third-party cookie check'
-          style={{ display: 'none' }} />
-        {!this.state.thirdPartyCookiesEnabled &&
+          style={{ display: 'none' }}
+        />
+        {!this.state.thirdPartyCookiesEnabled && (
           <p className='au-text-warning'>
-            You need to have third-party cookies enabled in order to view dashboards
-            properly. Please make sure that your browser settings are configured to allow
-            third-party cookies and try refreshing this page.
+            You need to have third-party cookies enabled in order to view
+            dashboards properly. Please make sure that your browser settings are
+            configured to allow third-party cookies and try refreshing this
+            page.
           </p>
-        }
-        {this.state.error !== ERROR_NONE &&
-          <p className='au-text-warning'>
-            {ERROR_MESSAGES[this.state.error]}
-          </p>
-        }
-        <div ref={c => (this.container = c)} {...dashboardProps} />
+        )}
+        {this.state.error !== ERROR_NONE && (
+          <p className='au-text-warning'>{ERROR_MESSAGES[this.state.error]}</p>
+        )}
+        <div ref={(c) => (this.container = c)} {...dashboardProps} />
       </div>
     )
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this.initTrustedView()
     window.addEventListener('message', this.messageEventListener)
   }
@@ -464,9 +496,9 @@ class IvhTableauDashboard extends Component {
    * Reinitialize the Tableau view if the view URL or user
    * accessing it changed
    */
-  componentDidUpdate (prevProps) {
-    const isInitNeeded = prevProps.url !== this.props.url ||
-      prevProps.user !== this.props.user
+  componentDidUpdate(prevProps) {
+    const isInitNeeded =
+      prevProps.url !== this.props.url || prevProps.user !== this.props.user
     if (isInitNeeded) {
       // eslint-disable-next-line react/no-did-update-set-state
       this.setState({ error: ERROR_NONE })
@@ -474,9 +506,10 @@ class IvhTableauDashboard extends Component {
     }
   }
 
-  componentWillReceiveProps (nextProps) {
+  componentWillReceiveProps(nextProps) {
     const isSameUrl = nextProps.url === this.props.url
-    const isFiltersNew = nextProps.filters !== this.props.filters ||
+    const isFiltersNew =
+      nextProps.filters !== this.props.filters ||
       nextProps.filterTypes !== this.props.filterTypes
     const isParamsNew = nextProps.parameters !== this.props.parameters
     if (isSameUrl && isParamsNew) {
@@ -491,7 +524,7 @@ class IvhTableauDashboard extends Component {
   /**
    * Cleanup event listeners when the component unmounts
    */
-  componentWillUnmount () {
+  componentWillUnmount() {
     if (this.resizeListening) {
       window.removeEventListener('resize', this.resizeEventListener)
       window.removeEventListener('message', this.messageEventListener)

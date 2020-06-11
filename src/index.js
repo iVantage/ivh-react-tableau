@@ -27,20 +27,14 @@ const propTypes = {
   tableauTrustedUrl: PropTypes.string,
   filters: PropTypes.object,
   parameters: PropTypes.object,
-  onDashboardLoad: PropTypes.func,
-  checkDashboardDimensions: PropTypes.bool,
-  hideToolbar: PropTypes.bool
+  onDashboardLoad: PropTypes.func
 }
 
 const defaultProps = {
   tableauTrustedUrl: DEFAULT_TABLEAU_TRUSTED_URI,
   filters: {},
-  onDashboardLoad: () => {},
-  checkDashboardDimensions: false
+  onDashboardLoad: () => {}
 }
-
-const STANDARD_MIN_WIDTH = 880
-const STANDARD_MAX_WIDTH = 1280
 
 const DEBUG = window.location.search.indexOf('debug') > -1
 
@@ -433,20 +427,6 @@ class IvhTableauDashboard extends Component {
     this.setState({ parameters })
   }
 
-  meetsStandardWidth() {
-    // Return true while the size of the viz is still unknown
-    if (
-      Object.keys(this.state.maxSize).length === 0 ||
-      Object.keys(this.state.minSize).length === 0
-    ) {
-      return true
-    }
-    return (
-      this.state.maxSize.width >= STANDARD_MAX_WIDTH &&
-      this.state.minSize.width <= STANDARD_MIN_WIDTH
-    )
-  }
-
   downloadWorkbook() {
     this.viz.showDownloadWorkbookDialog()
   }
@@ -459,8 +439,6 @@ class IvhTableauDashboard extends Component {
       filters,
       filterTypes,
       parameters,
-      checkDashboardDimensions,
-      hideToolbar, // Unused, but omitted from `dashboardProps`
       onDashboardLoad, // Unused, but omitted from `dashboardProps`
       ...dashboardProps
     } = this.props

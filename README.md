@@ -43,6 +43,8 @@ Use it!
   Changes will be applied to the dashboard as this prop is updated.
 - `parameters` - A hash of tableau parameters to apply to the dashboard.
   Changes will be applied to the dashboard as this prop is updated.
+- `onDashboardLoad` - An optional callback function which is called during the dashboard's
+  `onFirstInteractiveEvent`. Is passed the viz's workbook as a parameter.
 
 Additional [options](https://onlinehelp.tableau.com/current/api/js_api/en-us/JavaScriptAPI/js_api_ref.htm#ref_head_9) can be passed to the Tableau initializer
 by specifying additional attributes on the `IvhTableauDashboard` tag. e.g. `<IvhTableauDashboard ... height='500px' hideTabs />`

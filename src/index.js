@@ -10,28 +10,24 @@ import {
   ERROR_MESSAGES
 } from './constants/errors'
 
-const DEFAULT_TABLEAU_TRUSTED_URI = '/api/tableau/trustedurl'
-
-const HTTP_STATUS_NOCONTENT = 204
-
 const fetchOpts = {
   credentials: 'same-origin',
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/x-www-form-urlencoded'
   }
 }
 
 const propTypes = {
   url: PropTypes.string.isRequired,
   user: PropTypes.string,
-  tableauTrustedUrl: PropTypes.string,
+  trustedTicketUrl: PropTypes.string,
   filters: PropTypes.object,
   parameters: PropTypes.object,
   onDashboardLoad: PropTypes.func
 }
 
 const defaultProps = {
-  tableauTrustedUrl: DEFAULT_TABLEAU_TRUSTED_URI,
+  trustedTicketUrl: '',
   filters: {},
   onDashboardLoad: () => {}
 }
@@ -242,43 +238,40 @@ class IvhTableauDashboard extends Component {
    * Gets the trusted URL for the Tableau view and initializes the viz
    */
   initTrustedView() {
-    const { url, user, tableauTrustedUrl } = this.props
+    const { url, user, trustedTicketUrl } = this.props
+
+    let dashUrl = url + '?:embed=yes'
+    if (DEBUG) {
+      dashUrl += '&:record_performance=yes&:refresh'
+    }
 
     // If no user is provided just try to load the dashboard as is
     if (!user) {
-      let dashUrl = url
-      if (DEBUG) {
-        dashUrl += '&:record_performance=yes&:refresh'
-      }
       this.initTableau(dashUrl)
       return
     }
 
-    fetch(`${tableauTrustedUrl}?user=${user}&url=${url}`, fetchOpts)
+    const body = new URLSearchParams()
+    body.append('username', user)
+    fetch(`${trustedTicketUrl}`, {
+      ...fetchOpts,
+      method: 'POST',
+      body: body
+    })
       .then((resp) => {
-        // No-Content responses will fail json decoding
-        // because they have no body. They should just resolve
-        // with no data
-        if (resp.status === HTTP_STATUS_NOCONTENT) {
-          return Promise.resolve()
-        }
-        return resp.json().then((json) => {
-          if (resp.ok) {
-            return json
+        return resp.text().then((text) => {
+          if (resp.ok && text !== '-1') {
+            return text
           }
-          const err = new Error(
-            `Request to ${url} failed with status ${resp.status}`
-          )
+          const err = new Error('Failed to retrieve trusted ticket')
           err.httpStatusCode = resp.status
           return Promise.reject(err)
         })
       })
-      .then((responseData) => {
-        let dashUrl = `${responseData.data.id}&:revert=filters`
-        if (DEBUG) {
-          dashUrl += '&:record_performance=yes&:refresh'
-        }
-        this.initTableau(dashUrl)
+      .then((trustedTicket) => {
+        const u = new URL(dashUrl)
+        const trustedUrl = `${u.protocol}//${u.host}/trusted/${trustedTicket}${u.pathname}${u.search}`
+        this.initTableau(trustedUrl)
       })
       .catch((reason) => {
         if (
@@ -435,7 +428,7 @@ class IvhTableauDashboard extends Component {
     const {
       url,
       user,
-      tableauTrustedUrl,
+      trustedTicketUrl,
       filters,
       filterTypes,
       parameters,

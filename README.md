@@ -37,10 +37,11 @@ Use it!
 
 ### Properties
 
-- `url` _(required)_ - The content URL for the Tableau view to embed
+- `url` _(required)_ - The full URL of the Tableau view to embed
 - `user` - If using trusted authentication, the Tableau user to request a trusted ticket as. If
   not provided then trusted authentication will not be attempted.
-- `tableauTrustedUrl` - The API endpoint used to fetch the trusted URL.
+- `trustedTicketUrl` - The API endpoint used to grant trusted tickets. The API should behave the
+  same was as Tableau's ticket granting API as described here: https://help.tableau.com/current/server/en-us/trusted_auth_webrequ.htm
 - `filters` - A hash of tableau filters to apply to the dashboard.
   Changes will be applied to the dashboard as this prop is updated.
 - `parameters` - A hash of tableau parameters to apply to the dashboard.

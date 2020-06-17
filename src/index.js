@@ -82,7 +82,7 @@ class IvhTableauDashboard extends Component {
     // necessary, height can be applied to the containing element
     const height = Object.hasOwnProperty.call(this.state.maxSize, 'height')
       ? this.state.maxSize.height
-      : '500px'
+      : this.container.clientHeight
     this.viz.setFrameSize(width, height)
   }
 
@@ -159,8 +159,8 @@ class IvhTableauDashboard extends Component {
           this.activeSheet = this.workbook.getActiveSheet()
           const size = this.activeSheet.getSize()
           this.setState({
-            maxSize: size.maxSize,
-            minSize: size.minSize
+            maxSize: size.maxSize || {},
+            minSize: size.minSize || {}
           })
 
           if (!this.resizeListening) {

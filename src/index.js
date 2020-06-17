@@ -10,12 +10,7 @@ import {
   ERROR_MESSAGES
 } from './constants/errors'
 
-const fetchOpts = {
-  credentials: 'same-origin',
-  headers: {
-    'Content-Type': 'application/x-www-form-urlencoded'
-  }
-}
+import { DEFAULT_FETCH_OPTS } from './constants/http'
 
 const propTypes = {
   url: PropTypes.string.isRequired,
@@ -27,8 +22,8 @@ const propTypes = {
 }
 
 const defaultProps = {
-  trustedTicketUrl: '',
   filters: {},
+  parameters: {},
   onDashboardLoad: () => {}
 }
 
@@ -254,7 +249,7 @@ class IvhTableauDashboard extends Component {
     const body = new URLSearchParams()
     body.append('username', user)
     fetch(`${trustedTicketUrl}`, {
-      ...fetchOpts,
+      ...DEFAULT_FETCH_OPTS,
       method: 'POST',
       body: body
     })
